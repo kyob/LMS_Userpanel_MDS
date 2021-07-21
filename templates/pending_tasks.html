@@ -1,0 +1,39 @@
+<!-- $Id$ -->
+{include file="header.html"}
+{box title="Pending tasks"}
+<h1>
+    <a class="btn btn btn-dark" href="?m=mydevicesettings">&larr; {trans("back to device list")}</a> &nbsp; MAC: <span
+        class="badge badge-light">{$mac}</span>
+</h1>
+{if is_array($pending_tasks)}
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">{trans("Tasks")}</th>
+                <th scope="col">{trans("Last update")}</th>
+                <th scope="col">{trans("Actions")}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach $pending_tasks as $item}
+                <tr>
+                    <th scope="row">{$item@index+1}</th>
+                    <td>
+                        <pre>{$item|@print_r}</pre>
+                    </td>
+                    <td>{$item._timestamp|date_format:"%Y/%m/%d, %T"}</td>
+                    <td>
+                        <form method="POST" action="?m=mydevicesettings&f=pending" name="disableWLAN">
+                            <input type="hidden" name="device_id" value="{$item.device}">
+                            <input type="hidden" name="task_id" value="{$item._id}">
+                            <input class="btn btn-danger" type="submit" value="{trans("Delete")}">
+                        </form>
+                    </td>
+                </tr>
+            {/foreach}
+        </tbody>
+    </table>
+{/if}
+{/box}
+{include file="footer.html"}

@@ -1,0 +1,49 @@
+<!-- $Id$ -->
+{include file="header.html"}
+{box title="Device Info"}
+<h1>
+    <a class="btn btn btn-dark" href="?m=mydevicesettings">&larr; {trans("back to device list")}</a> &nbsp; MAC: <span class="badge badge-light">{$mac}</span>
+</h1>
+<div class="card">
+    <div class="card-header">
+        <form method="POST" action="?m=mydevicesettings&f=submit" name="downloadRefresh">
+            <input type="hidden" name="mac" value="{$mac}">
+            <input type="hidden" name="device_id" value="{$device_id}">
+            <input type="hidden" name="action" value="downloadRefresh">
+            {trans("Download diagnostics")} <button class="btn btn-secondary btn-sm" name="downloadRefresh" type="submit" data-toggle="tooltip" data-placement="top" title="{trans("Force data refresh")}"><i class="fas fa-sync"></i></button>
+        </form>
+    </div>
+    <div class="card-body">
+        {if $DownloadDiagnostics.DiagnosticsState._value}
+            <ul>
+                <li>{trans("Last measurement status")}: <span class="badge badge-primary">{$DownloadDiagnostics.DiagnosticsState._value}</span></li>
+                <li>{trans("Path to download file")}: <span class="badge badge-secondary">{$DownloadDiagnostics.DownloadURL._value}</span></li>
+                    {if $DownloadDiagnostics.DiagnosticsState._value!='Requested'}
+                    <li>{trans("File size")}: <span class="badge badge-primary">{$DownloadDiagnostics.TestBytesReceived._value/1024/1024} MB</span></li>
+                    <li>{trans("Download time")}: <span class="badge badge-primary">{$DownloadTest['seconds']}s</span></li>
+                    <li>{trans("Download speed")}: <span class="badge badge-primary">{$DownloadTest['speed']}</span></li>
+                    <li>{trans("End of measurement")}: <span class="badge badge-primary">{{$DownloadDiagnostics.EOMTime._value}|date_format:"%Y/%m/%d, %T"}</span></li>
+                    {/if}
+            </ul>
+        {else}
+            {trans("Start the measurement so that the results appear.")}
+        {/if}
+        <hr>
+        <form method="POST" action="?m=mydevicesettings&f=submit" name="download" class="form-inline">
+            Wybierz plik testowy:
+            <select class="form-control ml-2 mb-2 mr-sm-2" name="url">
+                {foreach $download_urls as $item}
+                    <option value="{$item.url}">{$item.name}</option>
+                {/foreach}
+            </select>
+            <button type="submit" class="btn btn-primary mb-2">{trans("Start a new measurement")}</button>
+            <input type="hidden" name="device_id" value="{$device_id}">
+            <input type="hidden" name="action" value="downloadRequested">
+        </form>
+        {if $DownloadDiagnostics['DiagnosticsState']['_value']=='Requested'}
+            <small class="text-secondary"><span class="spinner-border spinner-border spinner-border-sm text-secondary" role="status" aria-hidden="true"></span> {trans("Measurement initiated")} {{$DownloadDiagnostics._timestamp}|date_format:"%Y/%m/%d, %T"}. {trans("Proszę czekać na zakończenie zadania oraz aktualizację wyniku pomiaru.")}</small>
+        {/if}
+    </div>
+</div>
+{/box}
+{include file="footer.html"}

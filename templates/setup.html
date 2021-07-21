@@ -1,0 +1,36 @@
+{include file="header.html"}
+<!--// $Id$ //-->
+<h1>{$layout.pagetitle}</h1>
+<TABLE WIDTH="100%" CELLPADDING="3">
+    <TR CLASS="dark">
+        <TD CLASS="fall bold">{trans("Module Configuration:")}</TD>
+    </TR>
+    <TR CLASS="light">
+        <TD CLASS="fall">
+            <FORM NAME="moduleconfig" METHOD="POST" ACTION="?m=userpanel&module=mydevicesettings&f=submit_setup">
+                <table width="100%">
+                    <colgroup>
+                        <col style="width: 1%;">
+                        <col style="width: 99%;">
+                    </colgroup>
+                    <tr>
+                        <td class="nobr">
+                            <label for="acs_url">
+                                {trans("ACS url for CPE management:")}
+                            </label>
+                        </td>
+                        <td>
+                            <input type="text" class="box light" name="acs_url" id="acs_url" value="{$acs_url}">
+                        </td>
+                    </tr>
+                </table>
+                <p align="right">
+                    <A HREF="?m=userpanel">{trans("Cancel")} <IMG SRC="img/cancel.gif" ALT=""></A>
+                    <A HREF="javascript:document.moduleconfig.submit();" ACCESSKEY="S">{trans("Submit")}
+                        <IMG SRC="img/save.gif" ALT=""></A>
+                </p>
+            </FORM>
+        </TD>
+    </TR>
+</TABLE>
+{include file="footer.html"}

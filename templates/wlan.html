@@ -1,0 +1,119 @@
+<!-- $Id$ -->
+{include file="header.html"}
+{box title="WLAN"}
+<h1>
+    <a class="btn btn btn-dark" href="?m=mydevicesettings">&larr; {trans("back to device list")}</a> &nbsp; MAC: <span class="badge badge-light">{$mac}</span>
+</h1>
+{if isset($wlan.SSID._value) }
+    <div class="card-deck">
+        <div class="card">
+            <div class="card-header">
+                {if $radio_id==1}
+                    {trans("WiFi 2.4GHz")}
+                {elseif $radio_id==3}
+                    {trans("WiFi 5GHz")}
+                {else}
+                    {trans("Unknown radio module!")}
+                {/if}
+            </div>
+            <div class="card-body">
+                <form method="POST" action="?m=mydevicesettings&f=wlan" name="updateWLAN" class="needs-validation" novalidate>
+                    <div class="row-group pb-3">
+                        <label for="formGroupExampleInput">{trans("SSID")}</label>
+                        <input name="SSID" value="{$wlan.SSID._value}" type="text" class="form-control" placeholder="{trans("Enter the name of the wireless network. Maximum 32 characters.")}" maxlength="32" required>
+                    </div>
+                    <div class="row-group pb-3">
+                        <label for="formGroupExampleInput">{trans("Possible channels")}</label>
+                        <select class="form-control" name="Channel">
+                            <option value="0" {if $wlan.AutoChannelEnable._value==1}selected{/if}>{trans("Automatic channel selection")}</option>
+                            {foreach $wlan.PossibleChannels._value as $PossibleChannels}
+                                <option value="{$PossibleChannels}" {if $wlan.Channel._value==$PossibleChannels && $wlan.AutoChannelEnable._value==0}selected{/if}>{$PossibleChannels}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="row-group">
+                        <label for="formGroupExampleInput">{trans("Transmit power")}</label>
+                        <select class="form-control" name="TransmitPower">
+                            {foreach $wlan.TransmitPowerSupported._value as $TransmitPowerSupported}
+                                <option {if $wlan.TransmitPower._value==$TransmitPowerSupported}selected{/if}>{$TransmitPowerSupported}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="row pt-3">
+                        <div class="col">
+                            <div class="form-check">
+                                <input name="RadioEnabled" type="checkbox" class="form-check-input" {if $wlan.RadioEnabled._value==1}checked{/if} id="defaultCheck1">
+                                <label class="form-check-label" for="defaultCheck1">
+                                    {trans("Radio enabled")}
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-check">
+                                <input name="WPS" type="checkbox" class="form-check-input" {if $wlan.WPS.Enable._value==1}checked{/if} id="defaultCheck1">
+                                <label class="form-check-label" for="defaultCheck1">
+                                    {trans("WPS")}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group row">
+                        <div class="col">
+                            <input type="hidden" name="device_id" value="{$device_id}">
+                            <input type="hidden" name="radio_id" value="{$radio_id}">
+                            <input type="hidden" name="action" value="updateWLAN">
+                            <input type="submit" class="btn btn-danger" value="{trans("Save")}">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                {trans("Password")}
+            </div>
+            <div class="card-body">
+                <p>{trans("It is not possible to read the current password. You can only set a new password.")}</p>
+                <form method="POST" action="?m=mydevicesettings&f=wlan" name="changePassword" class="form-inline needs-validation" novalidate>
+                    <label class="sr-only" for="inlinePassword">{trans("Password")}</label>
+                    <input name="PreSharedKey" type="password" class="form-control mb-2 mr-sm-2" id="inlinePassword" title="Wpisz hasło od 8 do 63 znaków." placeholder="Hasło od 8 do 63 znaków." minlength="8" maxlength="63" required>
+                    <button type="submit" class="btn btn-danger mb-2">{trans("Set new password")}</button>
+                    <input type="hidden" name="device_id" value="{$device_id}">
+                    <input type="hidden" name="radio_id" value="{$radio_id}">
+                    <input type="hidden" name="action" value="changePassword">
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Example starter JavaScript for disabling form submissions if there are invalid fields
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                var forms = document.getElementsByClassName('needs-validation');
+                // Loop over them and prevent submission
+                var validation = Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+{else}
+    <form method="POST" action="?m=mydevicesettings&f=submit" name="wlanRefresh">
+        <input type="hidden" name="mac" value="{$mac}">
+        <input type="hidden" name="radio_id" value="{$radio_id}">
+        <input type="hidden" name="device_id" value="{$device_id}">
+        <input type="hidden" name="action" value="wlanRefresh">
+        {trans("Force data refresh")}: <button class="btn btn-secondary btn-sm" name="wlanRefresh" type="submit" data-toggle="tooltip" data-placement="top" title="{trans("Force data refresh")}"><i class="fas fa-sync"></i></button>
+    </form>
+{/if}
+{/box}
+{include file="footer.html"}

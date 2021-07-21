@@ -1,0 +1,140 @@
+<!-- $Id$ -->
+{include file="header.html"}
+{box title="Devices list"}
+{if $count_devices>0}
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col" class="text-center">{trans("IP")}</th>
+                <th scope="col" class="text-center">{trans("MAC")}</th>
+                <th scope="col" class="text-center">{trans("Location")}</th>
+                <th scope="col" class="text-center">{trans("Actions")}</th>
+                <th scope="col" class="text-center">{trans("Time to update data")}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach item=item from=$nodes}
+                {if $item.device_id}
+                    <tr>
+                        <th scope="row">{$item@iteration}</th>
+                        <td>{$item.ip}</td>
+                        <td>{$item.mac}</td>
+                        <td>{$item.location}</td>
+                        <td>
+                            {if $item.device_state=='offline'}
+                                <form method="POST" action="?m=mydevicesettings&f=delete" name="wlan">
+                                    <input type="hidden" name="mac" value="{$item.mac}">
+                                    <input type="hidden" name="device_id" value="{$item.device_id}">
+                                    {trans("We have a problem communicating with the device or it is disconnected.")}
+                                    <button class="btn btn-danger mx-1 btn-sm"
+                                        type="submit">{trans("Delete device from database")}</button>
+                                </form>
+                            {else}
+                                {if $item.next_inform < 1}
+                                    <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                                        {if $item.data_exists==1}
+                                            <form method="POST" action="?m=mydevicesettings&f=deviceInfo" name="deviceInfo">
+                                                <input type="hidden" name="mac" value="{$item.mac}">
+                                                <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                <button class="btn btn-info btn-sm" type="submit">{trans("Information")}</button>
+                                            </form>
+                                            <div class="btn-group mx-1" role="group">
+                                                <button id="btnGroupDrop2" type="button" class="btn btn-primary btn-sm dropdown-toggle"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    {trans("WiFi")}
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop2">
+                                                    <form method="POST" action="?m=mydevicesettings&f=wlan" name="wlan2">
+                                                        <input type="hidden" name="mac" value="{$item.mac}">
+                                                        <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                        <input type="hidden" name="radio_id" value="1">
+                                                        <button class="dropdown-item btn-sm" type="submit">{trans("2.4 GHz network")}</button>
+                                                    </form>
+                                                    <form method="POST" action="?m=mydevicesettings&f=wlan" name="wlan5">
+                                                        <input type="hidden" name="mac" value="{$item.mac}">
+                                                        <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                        <input type="hidden" name="radio_id" value="3">
+                                                        <button class="dropdown-item btn-sm" type="submit">{trans("5 GHz network")}</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            <form method="POST" action="?m=mydevicesettings&f=log" name="log">
+                                                <input type="hidden" name="mac" value="{$item.mac}">
+                                                <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                <button class="btn btn-secondary mx-1 btn-sm" type="submit">{trans("Logi")}</button>
+                                            </form>
+                                            <div class="btn-group mx-1" role="group">
+                                                <button id="btnGroupDrop1" type="button" class="btn btn-warning btn-sm dropdown-toggle"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    {trans("Measurement")}
+                                                </button>
+                                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                                    <form method="POST" action="?m=mydevicesettings&f=ping" name="ping">
+                                                        <input type="hidden" name="mac" value="{$item.mac}">
+                                                        <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                        <button class="dropdown-item btn-sm" type="submit">{trans("Ping")}
+                                                            {if $item.ping_state=='Requested'} <span
+                                                                    class="spinner-border spinner-border-sm text-dark" role="status"
+                                                                aria-hidden="true"></span>{/if}
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" action="?m=mydevicesettings&f=traceroute" name="traceroute">
+                                                        <input type="hidden" name="mac" value="{$item.mac}">
+                                                        <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                        <button class="dropdown-item btn-sm" type="submit">{trans("Traceroute")}
+                                                            {if $item.traceroute_state=='Requested'} <span
+                                                                    class="spinner-border spinner-border-sm text-dark" role="status"
+                                                                aria-hidden="true"></span>{/if}
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" action="?m=mydevicesettings&f=download" name="download">
+                                                        <input type="hidden" name="mac" value="{$item.mac}">
+                                                        <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                        <button class="dropdown-item btn-sm" type="submit">{trans("Download")}
+                                                            {if $item.download_state=='Requested'} <span
+                                                                    class="spinner-border spinner-border-sm text-dark" role="status"
+                                                                aria-hidden="true"></span>{/if}
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        {elseif abs($item.next_inform)>0 and $item.data_exists!=1}
+                                            <form method="POST" action="?m=mydevicesettings" name="summon">
+                                                <input type="hidden" name="mac" value="{$item.mac}">
+                                                <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                <input class="btn btn-light mx-1 btn-sm {$disabled}" name="summon" type="submit"
+                                                    value="{trans("Force data refresh")}">
+                                            </form>
+                                        {else}
+                                            {trans("No device in the database.")}
+                                        {/if}
+                                        {if $item.pending_tasks_count>0}
+                                            <form method="POST" action="?m=mydevicesettings&f=pending" name="pending" class="form-horizontal">
+                                                <input type="hidden" name="mac" value="{$item.mac}">
+                                                <input type="hidden" name="device_id" value="{$item.device_id}">
+                                                <input class="btn btn-success mx-1 btn-sm" type="submit"
+                                                    value="{trans("Pending tasks")} ({$item.pending_tasks_count})">
+                                            </form>
+                                        {/if}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                            aria-valuenow="{abs($item.next_inform)}" aria-valuemin="0" aria-valuemax="300"
+                                            style="width: {$item.progress_position}%"><strong>{abs($item.next_inform)}s</strong></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {/if}
+                    {/if}
+                {/if}
+            {/foreach}
+        </tbody>
+    </table>
+{else}
+    <p class="lead">{trans("Your devices don't support this functionality.")}</p>
+{/if}
+{/box}
+{include file="footer.html"}

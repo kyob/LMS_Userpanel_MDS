@@ -1,0 +1,37 @@
+<!-- $Id$ -->
+{include file="header.html"}
+{box title="Device Log"}
+<h1>
+    <form method="POST" action="?m=mydevicesettings&f=submit" name="syslog" class="form-inline">
+        <input type="hidden" name="device_id" value="{$device_id}">
+        <a class="btn btn btn-dark" href="?m=mydevicesettings">&larr; {trans("back to device list")}</a>
+        {if $syslog!=0}
+            <button type="submit" class="btn btn-danger mx-1">{trans("Disable")}</button>
+            <input type="hidden" name="action" value="syslogDisable">
+        {else}
+            <button type="submit" class="btn btn-success mx-1">{trans("Enable")}</button>
+            <input type="hidden" name="action" value="syslogEnable">
+        {/if}
+        &nbsp; MAC: <span class="badge badge-light">{$mac}</span>
+    </form>
+</h1>
+{if $syslog!=0}
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">{trans("Logs")} ({trans("last")} {$last_events} {trans("records")})</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach $DeviceLog as $item}
+                <tr>
+                    <th scope="row">{$item@index+1}</th>
+                    <td>{$item}</td>
+                </tr>
+            {/foreach}
+        </tbody>
+    </table>
+{/if}
+{/box}
+{include file="footer.html"}
