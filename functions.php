@@ -18,7 +18,11 @@ if (!class_exists('GuzzleHttp\Client')) {
 
 use GuzzleHttp\Client;
 
-$acs_url = ConfigHelper::getConfig('mds.acs_url');
+$acs_url = ConfigHelper::getConfig('mds.acs_url', 'http://192.168.12.5:7557');
+
+if (!filter_var($acs_url, FILTER_VALIDATE_URL)) {
+    exit("$acs_url is not a valid URL. Check if there is valid url in variable `mds.acs_url`.");
+}
 
 $client = new Client([
     'base_uri' => $acs_url,
