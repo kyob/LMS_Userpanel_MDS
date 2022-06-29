@@ -5,8 +5,6 @@ TR-069 enables remote and safe configuration of network devices called CPE.
 ## Donation make my day :)
 
 * Bitcoin (BTC): `bc1qvwahntcrwjtdp0ntfd0l6kdvdr9d9h6atp6qrr`
-* Ethereum (ETH): `0xEFCd4b066195652a885d916183ffFfeEEd931f40`
-* Bitcoin SV (BSV): `$kopiszka` (my HandCash handle)
 * or any other cryptocurrency if you want just ask for wallet address
 
 ## WARNING!
