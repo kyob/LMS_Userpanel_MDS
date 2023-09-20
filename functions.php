@@ -277,10 +277,14 @@ function module_ping()
     $result = getProjectionFromDeviceID($device_id, $projection);
     $IPPingDiagnostics = $result[0]['InternetGatewayDevice']['IPPingDiagnostics'];
 
-    $SMARTY->assign('random_ip', getRandomIP());
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('IPPingDiagnostics', $IPPingDiagnostics);
+    $SMARTY->assign(
+        array(
+            'random_ip'=> getRandomIP(),
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'IPPingDiagnostics' => $IPPingDiagnostics
+        )
+    );
     $SMARTY->display('module:ping.html');
 }
 
@@ -296,10 +300,14 @@ function module_traceroute()
     $result = getProjectionFromDeviceID($device_id, $projection);
     $TraceRouteDiagnostics = $result[0]['InternetGatewayDevice']['TraceRouteDiagnostics'];
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('random_ip', getRandomIP());
-    $SMARTY->assign('TraceRouteDiagnostics', $TraceRouteDiagnostics);
-    $SMARTY->assign('mac', $mac);
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'random_ip'=> getRandomIP(),
+            'TraceRouteDiagnostics' => $TraceRouteDiagnostics,
+            'mac' => $mac,
+        )
+    );
     $SMARTY->display('module:traceroute.html');
 }
 
@@ -324,11 +332,15 @@ function module_download()
 
     $DownloadTest = speedTest($DownloadDiagnostics['TestBytesReceived']['_value'], new DateTime($DownloadDiagnostics['BOMTime']['_value']), new DateTime($DownloadDiagnostics['EOMTime']['_value']), 'Download');
 
-    $SMARTY->assign('DownloadTest', $DownloadTest);
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('download_urls', $download_urls);
-    $SMARTY->assign('DownloadDiagnostics', $DownloadDiagnostics);
+    $SMARTY->assign(
+        array(
+            'DownloadTest' => $DownloadTest,
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'download_urls' => $download_urls,
+            'DownloadDiagnostics' => $DownloadDiagnostics
+        )
+    );
     $SMARTY->display('module:download.html');
 }
 
@@ -354,11 +366,15 @@ function module_log()
         $syslog = 0;
     }
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('syslog', $syslog);
-    $SMARTY->assign('last_events', $last_events);
-    $SMARTY->assign('DeviceLog', array_slice(array_reverse(array_filter($DeviceLog)), 0, $last_events));
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'syslog' => $syslog,
+            'last_events' => $last_events,
+            'DeviceLog' => array_slice(array_reverse(array_filter($DeviceLog)), 0, $last_events)
+        )
+    );
     $SMARTY->display('module:log.html');
 }
 
@@ -418,10 +434,14 @@ function module_wlan()
     $wlan['TransmitPowerSupported']['_value'] = explode(",", $wlan['TransmitPowerSupported']['_value']);
     $wlan['PossibleChannels']['_value'] = explode(",", $wlan['PossibleChannels']['_value']);
 
-    $SMARTY->assign('wlan', array_filter($wlan));
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('radio_id', $radio_id);
+    $SMARTY->assign(
+        array(
+            'wlan' => array_filter($wlan),
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'radio_id' => $radio_id
+        )
+    );
     $SMARTY->display('module:wlan.html');
 }
 
@@ -446,17 +466,21 @@ function module_deviceInfo()
     $wanInfo[1] = $json[0]['InternetGatewayDevice']['WANDevice'][1]['WANConnectionDevice'][1]['WANIPConnection'][1];
     $wanStats[1] = $json[0]['InternetGatewayDevice']['WANDevice'][1]['WANCommonInterfaceConfig'];
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('device_info', $json);
-    $SMARTY->assign('WANDeviceInfo', $wanInfo);
-    $SMARTY->assign('WANDeviceStats', $wanStats);
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'device_info' => $json,
+            'WANDeviceInfo' => $wanInfo,
+            'WANDeviceStats' => $wanStats,
+            'events' => $events,
+            'tags' => $tags,
+            'mac' => $mac
+        )
+    );
     //$SMARTY->assign('UploadDiagnostics', $UploadDiagnostics);
     //$SMARTY->assign('DownloadDiagnostics', $DownloadDiagnostics);
     //$SMARTY->assign('DownloadTest', $DownloadTest);
     //$SMARTY->assign('UploadTest', $UploadTest);
-    $SMARTY->assign('events', $events);
-    $SMARTY->assign('tags', $tags);
-    $SMARTY->assign('mac', $mac);
     $SMARTY->display('module:device_info.html');
 }
 
@@ -474,8 +498,12 @@ function module_pending()
     $pending_tasks = getPendingTasks($device_id);
 
     if (!empty($pending_tasks)) {
-        $SMARTY->assign('pending_tasks', $pending_tasks);
-        $SMARTY->assign('mac', $mac);
+        $SMARTY->assign(
+            array(
+                'pending_tasks' => $pending_tasks,
+                'mac' => $mac,
+            )
+        );
 
         $SMARTY->display('module:pending_tasks.html');
     } else {
@@ -566,8 +594,11 @@ function module_main()
         );
     }
     //echo '<pre>';print_r($nodes);echo '</pre>';
-    $SMARTY->assign('nodes', $nodes);
-    //$SMARTY->assign('id', $id);
-    $SMARTY->assign('count_devices', $count_devices);
+    $SMARTY->assign(
+        array(
+            'nodes' => $nodes,
+            'count_devices' => $count_devices
+        )
+    );
     $SMARTY->display('module:devices.html');
 }
