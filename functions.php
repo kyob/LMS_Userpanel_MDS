@@ -186,85 +186,80 @@ function module_submit()
     $device_id = $_POST['device_id'];
     $number_of_repetitions = 10;
 
-    if ($_POST['action'] == 'deviceInfoRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo');
-    }
-
-    if ($_POST['action'] == 'wanStatsRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANCommonInterfaceConfig');
-    }
-
-    if ($_POST['action'] == 'wanInfoRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1');
-    }
-
-    if ($_POST['action'] == 'wlanRefresh') {
-        $radio_id = filter_var($_POST['radio_id'], FILTER_VALIDATE_INT);
-        if ((int) $radio_id) {
-            refreshObject($device_id, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.' . $radio_id);
-        }
-    }
-
-    if ($_POST['action'] == 'pingRequested') {
-        $host = filter_var($_POST['host'], FILTER_VALIDATE_IP);
-        $parameterValues = [
-            ["InternetGatewayDevice.IPPingDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.IPPingDiagnostics.Host", $host, "xsd:string"],
-            ["InternetGatewayDevice.IPPingDiagnostics.NumberOfRepetitions", $number_of_repetitions, "xsd:unsignedInt­"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
-    }
-    if ($_POST['action'] == 'tracerouteRequested') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.TraceRouteDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.TraceRouteDiagnostics.Host", $host, "xsd:string"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
-    }
-    if ($_POST['action'] == 'syslogEnable') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 1, "xsd:boolean"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
-    }
-    if ($_POST['action'] == 'syslogDisable') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 0, "xsd:boolean"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
-    }
-    if ($_POST['action'] == 'downloadRequested') {
-        $url = $_POST['url'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DownloadDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.DownloadDiagnostics.DownloadURL", $url, "xsd:string"]
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
-    }
-
-    if ($_POST['action'] == 'downloadRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
-    }
-
-    if ($_POST['action'] == 'pingRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
-    }
-
-    if ($_POST['action'] == 'tracerouteRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+    switch($_POST['action']) {
+        case 'deviceInfoRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo');
+            break;
+        case 'wanStatsRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANCommonInterfaceConfig');
+            break;
+        case 'wanInfoRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1');
+            break;
+        case 'wlanRefresh':
+            $radio_id = filter_var($_POST['radio_id'], FILTER_VALIDATE_INT);
+            if ((int) $radio_id) {
+                refreshObject($device_id, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.' . $radio_id);
+            }
+            break;
+        case 'pingRequested':
+            $host = filter_var($_POST['host'], FILTER_VALIDATE_IP);
+            $parameterValues = [
+                ["InternetGatewayDevice.IPPingDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.IPPingDiagnostics.Host", $host, "xsd:string"],
+                ["InternetGatewayDevice.IPPingDiagnostics.NumberOfRepetitions", $number_of_repetitions, "xsd:unsignedInt­"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
+            break;
+        case 'tracerouteRequested':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.TraceRouteDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.TraceRouteDiagnostics.Host", $host, "xsd:string"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+            break;
+        case 'syslogEnable':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 1, "xsd:boolean"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
+            break;
+        case 'syslogDisable':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 0, "xsd:boolean"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
+            break;
+        case 'downloadRequested':
+            $url = $_POST['url'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DownloadDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.DownloadDiagnostics.DownloadURL", $url, "xsd:string"]
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
+            break;
+        case 'downloadRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
+            break;
+        case 'pingRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
+            break;
+        case 'tracerouteRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+            break;
     }
     header('Location: ?m=mydevicesettings');
 }
