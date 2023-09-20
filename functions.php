@@ -36,8 +36,7 @@ $client = new Client([
 $ch = curl_init($acs_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 if (curl_exec($ch) === false) {
-    echo 'Curl error: ' . curl_error($ch);
-    die();
+    die('Curl error: ' . curl_error($ch));
 }
 curl_close($ch);
 
@@ -48,9 +47,9 @@ if (defined('USERPANEL_SETUPMODE')) {
 
     function module_setup()
     {
-        global $SMARTY;
+        global $SMARTY, $acs_url;
 
-        $SMARTY->assign('acs_url', ConfigHelper::getConfig('mds.acs_url'));
+        $SMARTY->assign('acs_url', $acs_url);
         $SMARTY->display('module:mydevicesettings:setup.html');
     }
 
@@ -103,8 +102,7 @@ function getProjectionFromDeviceID($device_id, $projection)
     $device_id = filter_var($device_id, FILTER_SANITIZE_STRING);
     $projection = filter_var($projection, FILTER_SANITIZE_STRING);
     $response = $client->get("/devices?query=%7B%22_id%22%3A%22" . $device_id . "%22%7D&projection=" . $projection);
-    $json = $response->getBody();
-    return json_decode($json, true);
+    return json_decode($response->getBody(), true);
 }
 
 function searcharray($value, $key, $array)
@@ -150,26 +148,21 @@ function refresh($device_id, $options)
 {
     global $client;
     $response = $client->post("/devices/" . $device_id . "/tasks", $options);
-    $json = $response->getBody();
-    return $r = json_decode($json, true);
+    return json_decode($response->getBody(), true);
 }
 
 function getPendingTasks($device_id)
 {
     global $client;
     $response = $client->get("/tasks/?query=%7B%22device%22%3A%22" . $device_id . "%22%7D");
-    $json = $response->getBody();
-    $r = json_decode($json, true);
-    return $r;
+    return json_decode($response->getBody(), true);
 }
 
 function deleteTask($task_id)
 {
     global $client;
     $response = $client->delete("/tasks/" . $task_id);
-    $json = $response->getBody();
-    $r = json_decode($json, true);
-    return $r;
+    return json_decode($response->getBody(), true);;
 }
 
 function module_delete()
@@ -186,85 +179,80 @@ function module_submit()
     $device_id = $_POST['device_id'];
     $number_of_repetitions = 10;
 
-    if ($_POST['action'] == 'deviceInfoRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo');
-    }
-
-    if ($_POST['action'] == 'wanStatsRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANCommonInterfaceConfig');
-    }
-
-    if ($_POST['action'] == 'wanInfoRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1');
-    }
-
-    if ($_POST['action'] == 'wlanRefresh') {
-        $radio_id = filter_var($_POST['radio_id'], FILTER_VALIDATE_INT);
-        if ((int) $radio_id) {
-            refreshObject($device_id, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.' . $radio_id);
-        }
-    }
-
-    if ($_POST['action'] == 'pingRequested') {
-        $host = filter_var($_POST['host'], FILTER_VALIDATE_IP);
-        $parameterValues = [
-            ["InternetGatewayDevice.IPPingDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.IPPingDiagnostics.Host", $host, "xsd:string"],
-            ["InternetGatewayDevice.IPPingDiagnostics.NumberOfRepetitions", $number_of_repetitions, "xsd:unsignedInt­"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
-    }
-    if ($_POST['action'] == 'tracerouteRequested') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.TraceRouteDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.TraceRouteDiagnostics.Host", $host, "xsd:string"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
-    }
-    if ($_POST['action'] == 'syslogEnable') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 1, "xsd:boolean"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
-    }
-    if ($_POST['action'] == 'syslogDisable') {
-        $host = $_POST['host'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 0, "xsd:boolean"],
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
-    }
-    if ($_POST['action'] == 'downloadRequested') {
-        $url = $_POST['url'];
-        $parameterValues = [
-            ["InternetGatewayDevice.DownloadDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
-            ["InternetGatewayDevice.DownloadDiagnostics.DownloadURL", $url, "xsd:string"]
-        ];
-        post($device_id, $parameterValues);
-        unset($_POST, $parameterValues);
-        refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
-    }
-
-    if ($_POST['action'] == 'downloadRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
-    }
-
-    if ($_POST['action'] == 'pingRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
-    }
-
-    if ($_POST['action'] == 'tracerouteRefresh') {
-        refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+    switch($_POST['action']) {
+        case 'deviceInfoRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo');
+            break;
+        case 'wanStatsRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANCommonInterfaceConfig');
+            break;
+        case 'wanInfoRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANIPConnection.1');
+            break;
+        case 'wlanRefresh':
+            $radio_id = filter_var($_POST['radio_id'], FILTER_VALIDATE_INT);
+            if ((int) $radio_id) {
+                refreshObject($device_id, 'InternetGatewayDevice.LANDevice.1.WLANConfiguration.' . $radio_id);
+            }
+            break;
+        case 'pingRequested':
+            $host = filter_var($_POST['host'], FILTER_VALIDATE_IP);
+            $parameterValues = [
+                ["InternetGatewayDevice.IPPingDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.IPPingDiagnostics.Host", $host, "xsd:string"],
+                ["InternetGatewayDevice.IPPingDiagnostics.NumberOfRepetitions", $number_of_repetitions, "xsd:unsignedInt­"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
+            break;
+        case 'tracerouteRequested':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.TraceRouteDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.TraceRouteDiagnostics.Host", $host, "xsd:string"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+            break;
+        case 'syslogEnable':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 1, "xsd:boolean"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
+            break;
+        case 'syslogDisable':
+            $host = $_POST['host'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog.Enable", 0, "xsd:boolean"],
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog');
+            break;
+        case 'downloadRequested':
+            $url = $_POST['url'];
+            $parameterValues = [
+                ["InternetGatewayDevice.DownloadDiagnostics.DiagnosticsState", "Requested", "xsd:string"],
+                ["InternetGatewayDevice.DownloadDiagnostics.DownloadURL", $url, "xsd:string"]
+            ];
+            post($device_id, $parameterValues);
+            unset($_POST, $parameterValues);
+            refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
+            break;
+        case 'downloadRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.DownloadDiagnostics');
+            break;
+        case 'pingRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.IPPingDiagnostics');
+            break;
+        case 'tracerouteRefresh':
+            refreshObject($device_id, 'InternetGatewayDevice.TraceRouteDiagnostics');
+            break;
     }
     header('Location: ?m=mydevicesettings');
 }
@@ -282,10 +270,14 @@ function module_ping()
     $result = getProjectionFromDeviceID($device_id, $projection);
     $IPPingDiagnostics = $result[0]['InternetGatewayDevice']['IPPingDiagnostics'];
 
-    $SMARTY->assign('random_ip', getRandomIP());
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('IPPingDiagnostics', $IPPingDiagnostics);
+    $SMARTY->assign(
+        array(
+            'random_ip'=> getRandomIP(),
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'IPPingDiagnostics' => $IPPingDiagnostics
+        )
+    );
     $SMARTY->display('module:ping.html');
 }
 
@@ -301,10 +293,14 @@ function module_traceroute()
     $result = getProjectionFromDeviceID($device_id, $projection);
     $TraceRouteDiagnostics = $result[0]['InternetGatewayDevice']['TraceRouteDiagnostics'];
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('random_ip', getRandomIP());
-    $SMARTY->assign('TraceRouteDiagnostics', $TraceRouteDiagnostics);
-    $SMARTY->assign('mac', $mac);
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'random_ip'=> getRandomIP(),
+            'TraceRouteDiagnostics' => $TraceRouteDiagnostics,
+            'mac' => $mac,
+        )
+    );
     $SMARTY->display('module:traceroute.html');
 }
 
@@ -329,11 +325,15 @@ function module_download()
 
     $DownloadTest = speedTest($DownloadDiagnostics['TestBytesReceived']['_value'], new DateTime($DownloadDiagnostics['BOMTime']['_value']), new DateTime($DownloadDiagnostics['EOMTime']['_value']), 'Download');
 
-    $SMARTY->assign('DownloadTest', $DownloadTest);
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('download_urls', $download_urls);
-    $SMARTY->assign('DownloadDiagnostics', $DownloadDiagnostics);
+    $SMARTY->assign(
+        array(
+            'DownloadTest' => $DownloadTest,
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'download_urls' => $download_urls,
+            'DownloadDiagnostics' => $DownloadDiagnostics
+        )
+    );
     $SMARTY->display('module:download.html');
 }
 
@@ -346,24 +346,23 @@ function module_log()
 
     $projection = 'InternetGatewayDevice.DeviceInfo.DeviceLog';
     $result = getProjectionFromDeviceID($device_id, $projection);
-    $DeviceLog = $result[0]['InternetGatewayDevice']['DeviceInfo']['DeviceLog']['_value'];
-    $DeviceLog = explode(PHP_EOL, $DeviceLog);
+    $DeviceLog = explode(PHP_EOL, $result[0]['InternetGatewayDevice']['DeviceInfo']['DeviceLog']['_value']);
 
     $projection = 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog';
     $result = getProjectionFromDeviceID($device_id, $projection);
     $X_DLINK_Syslog = $result[0]['InternetGatewayDevice']['DeviceInfo']['X_DLINK_Syslog'];
 
-    if ($X_DLINK_Syslog['Enable']['_value']) {
-        $syslog = $X_DLINK_Syslog;
-    } else {
-        $syslog = 0;
-    }
+    $syslog = $X_DLINK_Syslog['Enable']['_value'] ? $X_DLINK_Syslog : false;
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('syslog', $syslog);
-    $SMARTY->assign('last_events', $last_events);
-    $SMARTY->assign('DeviceLog', array_slice(array_reverse(array_filter($DeviceLog)), 0, $last_events));
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'syslog' => $syslog,
+            'last_events' => $last_events,
+            'DeviceLog' => array_slice(array_reverse(array_filter($DeviceLog)), 0, $last_events)
+        )
+    );
     $SMARTY->display('module:log.html');
 }
 
@@ -375,7 +374,6 @@ function module_wlan()
     $radio_id = $_POST['radio_id'];
     if ($_POST['action'] == 'changePassword') {
         $PreSharedKey = $_POST['PreSharedKey'][$radio_id];
-
         $parameterValues = [
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".PreSharedKey.1.PreSharedKey", $PreSharedKey, "xsd:string"],
         ];
@@ -389,21 +387,11 @@ function module_wlan()
         $WPS = $_POST['WPS'][$radio_id];
         $TransmitPower = $_POST['TransmitPower'];
         $Channel = $_POST['Channel'];
-        if ($Channel == 0) {
-            $AutoChannelEnable = 1;
-        } else {
-            $AutoChannelEnable = 0;
-        }
-        if ($RadioEnabled) {
-            $RadioEnabled = 1;
-        } else {
-            $RadioEnabled = 0;
-        }
-        if ($WPS) {
-            $WPS = 1;
-        } else {
-            $WPS = 0;
-        }
+
+        $AutoChannelEnable = ($Channel == 0 ? 1 : 0);
+        $RadioEnabled = ($RadioEnabled ? 1 : 0);
+        $WPS = ($WPS ? 1 : 0);
+
         $parameterValues = [
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".SSID", $SSID, "xsd:string"],
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".RadioEnabled", $RadioEnabled, "xsd:boolean"],
@@ -423,10 +411,14 @@ function module_wlan()
     $wlan['TransmitPowerSupported']['_value'] = explode(",", $wlan['TransmitPowerSupported']['_value']);
     $wlan['PossibleChannels']['_value'] = explode(",", $wlan['PossibleChannels']['_value']);
 
-    $SMARTY->assign('wlan', array_filter($wlan));
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('mac', $mac);
-    $SMARTY->assign('radio_id', $radio_id);
+    $SMARTY->assign(
+        array(
+            'wlan' => array_filter($wlan),
+            'device_id' => $device_id,
+            'mac' => $mac,
+            'radio_id' => $radio_id
+        )
+    );
     $SMARTY->display('module:wlan.html');
 }
 
@@ -451,17 +443,21 @@ function module_deviceInfo()
     $wanInfo[1] = $json[0]['InternetGatewayDevice']['WANDevice'][1]['WANConnectionDevice'][1]['WANIPConnection'][1];
     $wanStats[1] = $json[0]['InternetGatewayDevice']['WANDevice'][1]['WANCommonInterfaceConfig'];
 
-    $SMARTY->assign('device_id', $device_id);
-    $SMARTY->assign('device_info', $json);
-    $SMARTY->assign('WANDeviceInfo', $wanInfo);
-    $SMARTY->assign('WANDeviceStats', $wanStats);
+    $SMARTY->assign(
+        array(
+            'device_id' => $device_id,
+            'device_info' => $json,
+            'WANDeviceInfo' => $wanInfo,
+            'WANDeviceStats' => $wanStats,
+            'events' => $events,
+            'tags' => $tags,
+            'mac' => $mac
+        )
+    );
     //$SMARTY->assign('UploadDiagnostics', $UploadDiagnostics);
     //$SMARTY->assign('DownloadDiagnostics', $DownloadDiagnostics);
     //$SMARTY->assign('DownloadTest', $DownloadTest);
     //$SMARTY->assign('UploadTest', $UploadTest);
-    $SMARTY->assign('events', $events);
-    $SMARTY->assign('tags', $tags);
-    $SMARTY->assign('mac', $mac);
     $SMARTY->display('module:device_info.html');
 }
 
@@ -479,8 +475,12 @@ function module_pending()
     $pending_tasks = getPendingTasks($device_id);
 
     if (!empty($pending_tasks)) {
-        $SMARTY->assign('pending_tasks', $pending_tasks);
-        $SMARTY->assign('mac', $mac);
+        $SMARTY->assign(
+            array(
+                'pending_tasks' => $pending_tasks,
+                'mac' => $mac,
+            )
+        );
 
         $SMARTY->display('module:pending_tasks.html');
     } else {
@@ -505,25 +505,19 @@ function module_main()
     }
     unset($_POST);
     $usernodes = $LMS->GetCustomerNodes($SESSION->id);
-    //echo '<pre>';print_r($usernodes);echo '</pre>';
 
 
     $isDataAcsExists = null;
     foreach ($usernodes as $node) {
         $mac = strtolower($node['mac']);
         $response = $client->get("/devices/?query=%7B%22VirtualParameters.unifiedMAC%22%3A%22" . $mac . "%22%7D");
-        //echo '<pre>';print_r($response);echo '</pre>';
 
-        $json = $response->getBody();
-        $result = json_decode($json, true);
-        //echo '<pre>';print_r($result);echo '</pre>';
+        $result = json_decode($response->getBody(), true);
 
         $isDataAcsExists = $result[0]['InternetGatewayDevice']['DeviceInfo']['SoftwareVersion'];
         if (is_countable($isDataAcsExists)) {
             $data_exists = count($isDataAcsExists) ? '1' : '0';
         }
-
-        //echo '<pre>';print_r($data_exists);echo '</pre>';
 
         $device_id = $result[0]['_id'];
         if ($device_id)
@@ -570,9 +564,12 @@ function module_main()
             'data_exists' => $data_exists,
         );
     }
-    //echo '<pre>';print_r($nodes);echo '</pre>';
-    $SMARTY->assign('nodes', $nodes);
-    //$SMARTY->assign('id', $id);
-    $SMARTY->assign('count_devices', $count_devices);
+
+    $SMARTY->assign(
+        array(
+            'nodes' => $nodes,
+            'count_devices' => $count_devices
+        )
+    );
     $SMARTY->display('module:devices.html');
 }
