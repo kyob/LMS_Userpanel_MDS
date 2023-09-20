@@ -36,8 +36,7 @@ $client = new Client([
 $ch = curl_init($acs_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 if (curl_exec($ch) === false) {
-    echo 'Curl error: ' . curl_error($ch);
-    die();
+    die('Curl error: ' . curl_error($ch));
 }
 curl_close($ch);
 
@@ -48,9 +47,9 @@ if (defined('USERPANEL_SETUPMODE')) {
 
     function module_setup()
     {
-        global $SMARTY;
+        global $SMARTY, $acs_url;
 
-        $SMARTY->assign('acs_url', ConfigHelper::getConfig('mds.acs_url'));
+        $SMARTY->assign('acs_url', $acs_url);
         $SMARTY->display('module:mydevicesettings:setup.html');
     }
 
@@ -103,8 +102,7 @@ function getProjectionFromDeviceID($device_id, $projection)
     $device_id = filter_var($device_id, FILTER_SANITIZE_STRING);
     $projection = filter_var($projection, FILTER_SANITIZE_STRING);
     $response = $client->get("/devices?query=%7B%22_id%22%3A%22" . $device_id . "%22%7D&projection=" . $projection);
-    $json = $response->getBody();
-    return json_decode($json, true);
+    return json_decode($response->getBody(), true);
 }
 
 function searcharray($value, $key, $array)
@@ -150,26 +148,21 @@ function refresh($device_id, $options)
 {
     global $client;
     $response = $client->post("/devices/" . $device_id . "/tasks", $options);
-    $json = $response->getBody();
-    return $r = json_decode($json, true);
+    return json_decode($response->getBody(), true);
 }
 
 function getPendingTasks($device_id)
 {
     global $client;
     $response = $client->get("/tasks/?query=%7B%22device%22%3A%22" . $device_id . "%22%7D");
-    $json = $response->getBody();
-    $r = json_decode($json, true);
-    return $r;
+    return json_decode($response->getBody(), true);
 }
 
 function deleteTask($task_id)
 {
     global $client;
     $response = $client->delete("/tasks/" . $task_id);
-    $json = $response->getBody();
-    $r = json_decode($json, true);
-    return $r;
+    return json_decode($response->getBody(), true);;
 }
 
 function module_delete()
@@ -353,18 +346,13 @@ function module_log()
 
     $projection = 'InternetGatewayDevice.DeviceInfo.DeviceLog';
     $result = getProjectionFromDeviceID($device_id, $projection);
-    $DeviceLog = $result[0]['InternetGatewayDevice']['DeviceInfo']['DeviceLog']['_value'];
-    $DeviceLog = explode(PHP_EOL, $DeviceLog);
+    $DeviceLog = explode(PHP_EOL, $result[0]['InternetGatewayDevice']['DeviceInfo']['DeviceLog']['_value']);
 
     $projection = 'InternetGatewayDevice.DeviceInfo.X_DLINK_Syslog';
     $result = getProjectionFromDeviceID($device_id, $projection);
     $X_DLINK_Syslog = $result[0]['InternetGatewayDevice']['DeviceInfo']['X_DLINK_Syslog'];
 
-    if ($X_DLINK_Syslog['Enable']['_value']) {
-        $syslog = $X_DLINK_Syslog;
-    } else {
-        $syslog = 0;
-    }
+    $syslog = $X_DLINK_Syslog['Enable']['_value'] ? $X_DLINK_Syslog : false;
 
     $SMARTY->assign(
         array(
@@ -386,7 +374,6 @@ function module_wlan()
     $radio_id = $_POST['radio_id'];
     if ($_POST['action'] == 'changePassword') {
         $PreSharedKey = $_POST['PreSharedKey'][$radio_id];
-
         $parameterValues = [
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".PreSharedKey.1.PreSharedKey", $PreSharedKey, "xsd:string"],
         ];
@@ -400,21 +387,11 @@ function module_wlan()
         $WPS = $_POST['WPS'][$radio_id];
         $TransmitPower = $_POST['TransmitPower'];
         $Channel = $_POST['Channel'];
-        if ($Channel == 0) {
-            $AutoChannelEnable = 1;
-        } else {
-            $AutoChannelEnable = 0;
-        }
-        if ($RadioEnabled) {
-            $RadioEnabled = 1;
-        } else {
-            $RadioEnabled = 0;
-        }
-        if ($WPS) {
-            $WPS = 1;
-        } else {
-            $WPS = 0;
-        }
+
+        $AutoChannelEnable = ($Channel == 0 ? 1 : 0);
+        $RadioEnabled = ($RadioEnabled ? 1 : 0);
+        $WPS = ($WPS ? 1 : 0);
+
         $parameterValues = [
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".SSID", $SSID, "xsd:string"],
             ["InternetGatewayDevice.LANDevice.1.WLANConfiguration." . $radio_id . ".RadioEnabled", $RadioEnabled, "xsd:boolean"],
@@ -528,25 +505,19 @@ function module_main()
     }
     unset($_POST);
     $usernodes = $LMS->GetCustomerNodes($SESSION->id);
-    //echo '<pre>';print_r($usernodes);echo '</pre>';
 
 
     $isDataAcsExists = null;
     foreach ($usernodes as $node) {
         $mac = strtolower($node['mac']);
         $response = $client->get("/devices/?query=%7B%22VirtualParameters.unifiedMAC%22%3A%22" . $mac . "%22%7D");
-        //echo '<pre>';print_r($response);echo '</pre>';
 
-        $json = $response->getBody();
-        $result = json_decode($json, true);
-        //echo '<pre>';print_r($result);echo '</pre>';
+        $result = json_decode($response->getBody(), true);
 
         $isDataAcsExists = $result[0]['InternetGatewayDevice']['DeviceInfo']['SoftwareVersion'];
         if (is_countable($isDataAcsExists)) {
             $data_exists = count($isDataAcsExists) ? '1' : '0';
         }
-
-        //echo '<pre>';print_r($data_exists);echo '</pre>';
 
         $device_id = $result[0]['_id'];
         if ($device_id)
@@ -593,7 +564,7 @@ function module_main()
             'data_exists' => $data_exists,
         );
     }
-    //echo '<pre>';print_r($nodes);echo '</pre>';
+
     $SMARTY->assign(
         array(
             'nodes' => $nodes,
