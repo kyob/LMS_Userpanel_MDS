@@ -2,11 +2,6 @@
 
 TR-069 enables remote and safe configuration of network devices called CPE.
 
-## Donation make my day :)
-
-* Bitcoin (BTC): `bc1qvwahntcrwjtdp0ntfd0l6kdvdr9d9h6atp6qrr`
-* or any other cryptocurrency if you want just ask for wallet address
-
 ## WARNING!
 
 * It's only development implementation it's not ready for production purpose.
@@ -56,7 +51,7 @@ What things you need to install the software and how to install them
 * [LMS-PLUS](https://github.com/lmsgit/lms/wiki/Informacje-o-projekcie-LMS-Plus) - Lan Management System (LMS)
 * [GenieACS](https://genieacs.com/) - Open source TR-069 remote management solution with advanced device provisioning capabilities
 * [Guzzle](https://github.com/guzzle/guzzle) - PHP HTTP client that makes it easy to send HTTP requests and trivial to integrate with web services
-* [kyob](https://kopiszka.com)
+* [kyob](https://kopiszka.xyz)
 
 ## Acknowledgments
 
